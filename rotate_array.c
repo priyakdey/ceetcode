@@ -1,5 +1,4 @@
-// Problem 189
-// Rotate Array
+// 189. Rotate Array
 // https://leetcode.com/problems/rotate-array/description/
 
 // Reverse an array in-place from start to end, exclusive.

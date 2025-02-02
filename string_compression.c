@@ -1,3 +1,4 @@
+// 443. String Compression
 // https://leetcode.com/problems/string-compression/description
 
 int compress(char *chars, int charsSize)
@@ -35,5 +36,5 @@ int compress(char *chars, int charsSize)
         }
     }
 
-        return insert_at;
+    return insert_at;
 }

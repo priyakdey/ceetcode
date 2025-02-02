@@ -1,4 +1,5 @@
-// https://leetcode.com/problems/special-array-i/decription/
+// 3151. Special Array I
+// https://leetcode.com/problems/special-array-i/description/
 
 #include <stdbool.h>
 #include <stdio.h>
