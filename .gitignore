@@ -3,3 +3,11 @@
 *.s
 *.so
 *.a
+
+# build output (CI generates and deploys this; not committed)
+docs/
+dist/
+
+# generator binary
+generator/generator
+generator/bin/
