@@ -58,9 +58,6 @@ func main() {
 	out := *outDir
 	if out == "" {
 		name := "docs"
-		if *dev {
-			name = "dist"
-		}
 		out = filepath.Join(root, name)
 	}
 

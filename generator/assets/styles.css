@@ -113,6 +113,9 @@ a:hover {
     max-width: 860px;
     margin: 0 auto;
     padding: 0 2rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 
@@ -187,6 +190,10 @@ header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
     transition: border-color var(--transition);
 }
 
@@ -469,6 +476,10 @@ nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
     transition: border-color var(--transition);
 }
 
@@ -824,6 +835,7 @@ nav .theme-toggle svg {
 footer {
     border-top: 1px solid var(--border);
     padding: 2.5rem 0 3rem;
+    margin-top: auto;
     transition: border-color var(--transition);
 }
 
