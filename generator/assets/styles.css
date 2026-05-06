@@ -827,6 +827,16 @@ nav .theme-toggle svg {
     color: var(--accent);
 }
 
+.comments-section .giscus,
+.comments-section .giscus-frame {
+    width: 100%;
+}
+
+.comments-section .giscus-frame {
+    border: none;
+    color-scheme: light dark;
+}
+
 
 /* ═══════════════════════════════════════════════════════════════════
    FOOTER (shared)

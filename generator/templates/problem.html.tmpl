@@ -124,7 +124,7 @@
             {{- if .Prev }}
             <a href="{{ .Prev.Slug }}.html" class="prev-next prev">
                 <span class="prev-next-label">&larr; Prev</span>
-                <span class="prev-next-title">{{ printf "%03d" .Prev.Number }}. {{ .Prev.Title }}</span>
+                <span class="prev-next-title">{{ .Prev.Number }}. {{ .Prev.Title }}</span>
             </a>
             {{- else }}
             <div></div>
@@ -132,12 +132,32 @@
             {{- if .Next }}
             <a href="{{ .Next.Slug }}.html" class="prev-next next">
                 <span class="prev-next-label">Next &rarr;</span>
-                <span class="prev-next-title">{{ printf "%03d" .Next.Number }}. {{ .Next.Title }}</span>
+                <span class="prev-next-title">{{ .Next.Number }}. {{ .Next.Title }}</span>
             </a>
             {{- else }}
             <div></div>
             {{- end }}
         </div>
+
+        <section class="section comments-section">
+            <div class="section-label">Discussions</div>
+            <script src="https://giscus.app/client.js"
+                    data-repo="priyakdey/ceetcode"
+                    data-repo-id="R_kgDONzIH4g"
+                    data-category="Comments"
+                    data-category-id="DIC_kwDONzIH4s4C8a2p"
+                    data-mapping="pathname"
+                    data-strict="0"
+                    data-reactions-enabled="1"
+                    data-emit-metadata="0"
+                    data-input-position="top"
+                    data-theme="preferred_color_scheme"
+                    data-lang="en"
+                    data-loading="lazy"
+                    crossorigin="anonymous"
+                    async>
+            </script>
+        </section>
 
         <footer>
             <div class="footer-top">
