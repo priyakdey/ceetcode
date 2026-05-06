@@ -18,14 +18,14 @@ containing a "problems/" directory), so the generator can be invoked from
 any subdirectory of the repo.
 
 Options:
-  -dev                include drafts; output to dist/ unless -out is set
+  -dev                include drafts; build, then serve dist/ over HTTP and open in browser
   -clean              wipe the output directory before building
   -problems  <path>   problems source directory (default: <repo>/problems)
-  -out       <path>   output directory (default: <repo>/docs, or <repo>/dist with -dev)
+  -out       <path>   output directory (default: <repo>/dist, or <repo>/dist with -dev)
   -h, -help           show this help and exit
 
 Examples:
-  generator                            build to docs/, drafts excluded
+  generator                            build to dist, drafts excluded
   generator -dev                       build to dist/, drafts included
   generator -dev -clean                wipe and rebuild dist/
   generator -problems ./problems -out ./public
@@ -57,7 +57,7 @@ func main() {
 
 	out := *outDir
 	if out == "" {
-		name := "docs"
+		name := "dist"
 		out = filepath.Join(root, name)
 	}
 
@@ -70,6 +70,13 @@ func main() {
 	if err := Build(cfg); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
+	}
+
+	if *dev {
+		if err := serve(out); err != nil {
+			fmt.Fprintln(os.Stderr, "error:", err)
+			os.Exit(1)
+		}
 	}
 }
 
