@@ -11,12 +11,14 @@ type Notes struct {
 	Approach        string
 	TimeComplexity  string
 	SpaceComplexity string
+	TimeNote        string
+	SpaceNote       string
 }
 
 var (
-	codeRe    = regexp.MustCompile("`([^`]+)`")
-	boldRe    = regexp.MustCompile(`\*\*([^*]+)\*\*`)
-	complexRe = regexp.MustCompile(`(?i)^-\s*(Time|Space)\s*:\s*(.+)$`)
+	codeRe   = regexp.MustCompile("`([^`]+)`")
+	boldRe   = regexp.MustCompile(`\*\*([^*]+)\*\*`)
+	bulletRe = regexp.MustCompile(`(?i)^-\s*(Time|Space)\s*:\s*(.*)$`)
 )
 
 func parseNotes(r io.Reader) (Notes, error) {
@@ -34,7 +36,7 @@ func parseNotesText(text string) Notes {
 		n.Approach = renderApproach(app)
 	}
 	if comp, ok := sections["complexity"]; ok {
-		n.TimeComplexity, n.SpaceComplexity = parseComplexity(comp)
+		n.TimeComplexity, n.TimeNote, n.SpaceComplexity, n.SpaceNote = parseComplexity(comp)
 	}
 	return n
 }
@@ -69,27 +71,82 @@ func renderApproach(text string) string {
 			continue
 		}
 		p = strings.Join(strings.Fields(p), " ")
-		p = html.EscapeString(p)
-		p = codeRe.ReplaceAllString(p, "<code>$1</code>")
-		p = boldRe.ReplaceAllString(p, "<strong>$1</strong>")
-		paragraphs = append(paragraphs, "<p>"+p+"</p>")
+		paragraphs = append(paragraphs, "<p>"+renderInline(p)+"</p>")
 	}
 	return strings.Join(paragraphs, "\n")
 }
 
-func parseComplexity(text string) (timeC, spaceC string) {
+func renderInline(s string) string {
+	s = html.EscapeString(s)
+	s = codeRe.ReplaceAllString(s, "<code>$1</code>")
+	s = boldRe.ReplaceAllString(s, "<strong>$1</strong>")
+	return s
+}
+
+func parseComplexity(text string) (timeC, timeNote, spaceC, spaceNote string) {
+	type bullet struct{ kind, body string }
+	var bullets []bullet
+	curIdx := -1
 	for _, line := range strings.Split(text, "\n") {
-		m := complexRe.FindStringSubmatch(strings.TrimSpace(line))
-		if m == nil {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			curIdx = -1
 			continue
 		}
-		val := strings.TrimSpace(m[2])
-		switch strings.ToLower(m[1]) {
+		if m := bulletRe.FindStringSubmatch(trimmed); m != nil {
+			bullets = append(bullets, bullet{
+				kind: strings.ToLower(m[1]),
+				body: strings.TrimSpace(m[2]),
+			})
+			curIdx = len(bullets) - 1
+			continue
+		}
+		if curIdx >= 0 {
+			if bullets[curIdx].body != "" {
+				bullets[curIdx].body += " "
+			}
+			bullets[curIdx].body += trimmed
+		}
+	}
+
+	for _, b := range bullets {
+		expr, note := splitExpressionNote(b.body)
+		expr = strings.ReplaceAll(expr, "`", "")
+		var rendered string
+		if note != "" {
+			rendered = renderInline(note)
+		}
+		switch b.kind {
 		case "time":
-			timeC = val
+			timeC, timeNote = expr, rendered
 		case "space":
-			spaceC = val
+			spaceC, spaceNote = expr, rendered
 		}
 	}
 	return
+}
+
+// splitExpressionNote splits a complexity bullet body into the expression
+// (e.g. "O(n)") and an optional rationale, divided by the first " - " or
+// " — " that sits outside backtick-delimited code spans.
+func splitExpressionNote(s string) (expr, note string) {
+	inCode := false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c == '`' {
+			inCode = !inCode
+			continue
+		}
+		if inCode || c != ' ' {
+			continue
+		}
+		rest := s[i:]
+		if strings.HasPrefix(rest, " - ") {
+			return strings.TrimSpace(s[:i]), strings.TrimSpace(s[i+3:])
+		}
+		if strings.HasPrefix(rest, " — ") {
+			return strings.TrimSpace(s[:i]), strings.TrimSpace(s[i+len(" — "):])
+		}
+	}
+	return strings.TrimSpace(s), ""
 }

@@ -80,14 +80,20 @@
 
         <section class="section">
             <div class="section-label">Complexity</div>
-            <div class="complexity-grid">
+            <div class="complexity-grid{{ if or .TimeNote .SpaceNote }} has-notes{{ end }}">
                 <div class="complexity-item">
                     <span class="complexity-label">Time</span>
                     <span class="complexity-value">{{ .TimeComplexity }}</span>
+                    {{- if .TimeNote }}
+                    <p class="complexity-note">{{ .TimeNote }}</p>
+                    {{- end }}
                 </div>
                 <div class="complexity-item">
                     <span class="complexity-label">Space</span>
                     <span class="complexity-value">{{ .SpaceComplexity }}</span>
+                    {{- if .SpaceNote }}
+                    <p class="complexity-note">{{ .SpaceNote }}</p>
+                    {{- end }}
                 </div>
             </div>
         </section>

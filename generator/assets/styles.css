@@ -662,6 +662,15 @@ nav .theme-toggle svg {
     gap: 2.5rem;
 }
 
+.complexity-grid.has-notes {
+    align-items: flex-start;
+}
+
+.complexity-grid.has-notes .complexity-item {
+    flex: 1;
+    min-width: 0;
+}
+
 .complexity-item {
     display: flex;
     flex-direction: column;
@@ -681,6 +690,18 @@ nav .theme-toggle svg {
     color: var(--text);
     font-style: italic;
     transition: color var(--transition);
+}
+
+.complexity-note {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+}
+
+.complexity-note code {
+    color: var(--accent);
+    font-size: 0.8rem;
 }
 
 /* ── Code Block ── */
@@ -998,6 +1019,11 @@ footer {
 
     .complexity-grid {
         gap: 1.5rem;
+    }
+
+    .complexity-grid.has-notes {
+        flex-direction: column;
+        gap: 1.25rem;
     }
 
     /* Footer */

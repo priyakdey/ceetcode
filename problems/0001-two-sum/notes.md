@@ -8,5 +8,7 @@ in an `amortized O(1)` time. If it does, we have found our pair.
 
 ## Complexity
 
-- Time: O(n)
-- Space: O(n)
+- Time: `O(n)` - single pass over `nums` with amortized `O(1)` hashmap
+  lookups.
+- Space: `O(n)` - the hashmap holds up to `n - 1` entries before the
+  match is found.

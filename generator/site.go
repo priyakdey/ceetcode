@@ -47,6 +47,8 @@ type Problem struct {
 	Approach        template.HTML
 	TimeComplexity  string
 	SpaceComplexity string
+	TimeNote        template.HTML
+	SpaceNote       template.HTML
 	Draft           bool
 	FolderName      string
 	Prev, Next      *NavRef
@@ -156,6 +158,8 @@ func loadProblem(dir, folder string) (Problem, error) {
 		Approach:        template.HTML(notes.Approach),
 		TimeComplexity:  notes.TimeComplexity,
 		SpaceComplexity: notes.SpaceComplexity,
+		TimeNote:        template.HTML(notes.TimeNote),
+		SpaceNote:       template.HTML(notes.SpaceNote),
 		Draft:           fm.Draft,
 		FolderName:      folder,
 	}, nil
