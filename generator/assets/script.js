@@ -9,7 +9,7 @@
     renderStats(PROBLEMS);
     renderTable(PROBLEMS);
 
-    searchInput.addEventListener('input', applyFilters);
+    searchInput.addEventListener('input', () => applyFilters(PROBLEMS));
 
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -53,7 +53,7 @@ function renderTable(problems) {
 
     noResults.style.display = 'none';
     table.innerHTML = problems.map(p => {
-        const num = String(p.number).padStart(3, '0');
+        const num = p.number; 
         const tags = p.tags.map(t => `<span class="tag">${t}</span>`).join('');
         return `<a href="${p.slug}.html" class="problem-row">
                 <span class="problem-num">${num}</span>

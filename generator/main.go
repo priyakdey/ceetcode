@@ -73,7 +73,8 @@ func main() {
 	}
 
 	if *dev {
-		if err := serve(out); err != nil {
+		rebuild := func() error { return Build(cfg) }
+		if err := serve(out, []string{probDir}, rebuild); err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			os.Exit(1)
 		}
