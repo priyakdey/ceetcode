@@ -9,6 +9,7 @@ import (
 
 type Notes struct {
 	Approach        string
+	Summary         string
 	TimeComplexity  string
 	SpaceComplexity string
 	TimeNote        string
@@ -34,6 +35,7 @@ func parseNotesText(text string) Notes {
 	sections := splitSections(text)
 	if app, ok := sections["approach"]; ok {
 		n.Approach = renderApproach(app)
+		n.Summary = summarize(app, 155)
 	}
 	if comp, ok := sections["complexity"]; ok {
 		n.TimeComplexity, n.TimeNote, n.SpaceComplexity, n.SpaceNote = parseComplexity(comp)
@@ -74,6 +76,28 @@ func renderApproach(text string) string {
 		paragraphs = append(paragraphs, "<p>"+renderInline(p)+"</p>")
 	}
 	return strings.Join(paragraphs, "\n")
+}
+
+// summarize returns the first paragraph of approach text as plain prose,
+// stripped of markdown markers and clamped to roughly maxLen characters
+// (truncated at a word boundary, with an ellipsis appended if shortened).
+// Suitable for <meta name="description"> and og:description.
+func summarize(text string, maxLen int) string {
+	first := strings.TrimSpace(strings.SplitN(strings.TrimSpace(text), "\n\n", 2)[0])
+	if first == "" {
+		return ""
+	}
+	first = strings.Join(strings.Fields(first), " ")
+	first = strings.ReplaceAll(first, "`", "")
+	first = boldRe.ReplaceAllString(first, "$1")
+	if len(first) <= maxLen {
+		return first
+	}
+	cut := first[:maxLen]
+	if i := strings.LastIndex(cut, " "); i > 0 {
+		cut = cut[:i]
+	}
+	return strings.TrimRight(cut, " ,.;:-") + "…"
 }
 
 func renderInline(s string) string {

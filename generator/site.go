@@ -19,7 +19,14 @@ var templatesFS embed.FS
 //go:embed assets
 var assetsFS embed.FS
 
-const sourceURLBase = "https://github.com/priyakdey/ceetcode/blob/main/problems/"
+const (
+	sourceURLBase = "https://github.com/priyakdey/ceetcode/blob/main/problems/"
+	siteURL       = "https://ceetcode.com"
+	siteName      = "ceetcode"
+	authorName    = "Priyak Dey"
+	authorURL     = "https://priyakdey.com"
+	ogImagePath   = "/favico/android-chrome-512x512.png"
+)
 
 type Config struct {
 	ProblemsDir   string
@@ -53,6 +60,14 @@ type Problem struct {
 	FolderName      string
 	Prev, Next      *NavRef
 	Year            int
+
+	Description  string
+	CanonicalURL string
+	OGImageURL   string
+	JSONLD       template.JS
+	SiteName     string
+	AuthorName   string
+	AuthorURL    string
 }
 
 type indexEntry struct {
@@ -86,6 +101,12 @@ func Build(cfg Config) error {
 		return err
 	}
 	if err := writeIndexJSON(probs, cfg.OutDir); err != nil {
+		return err
+	}
+	if err := writeSitemap(probs, cfg.OutDir); err != nil {
+		return err
+	}
+	if err := writeRobots(cfg.OutDir); err != nil {
 		return err
 	}
 
@@ -162,6 +183,7 @@ func loadProblem(dir, folder string) (Problem, error) {
 		SpaceNote:       template.HTML(notes.SpaceNote),
 		Draft:           fm.Draft,
 		FolderName:      folder,
+		Description:     buildDescription(fm.Title, titleCase(fm.Difficulty), notes.Summary),
 	}, nil
 }
 
@@ -169,6 +191,12 @@ func linkNav(probs []Problem) {
 	year := time.Now().Year()
 	for i := range probs {
 		probs[i].Year = year
+		probs[i].CanonicalURL = siteURL + "/" + probs[i].Slug + ".html"
+		probs[i].OGImageURL = siteURL + ogImagePath
+		probs[i].SiteName = siteName
+		probs[i].AuthorName = authorName
+		probs[i].AuthorURL = authorURL
+		probs[i].JSONLD = template.JS(buildJSONLD(&probs[i]))
 		if i > 0 {
 			probs[i].Prev = &NavRef{
 				Number: probs[i-1].Number, Title: probs[i-1].Title, Slug: probs[i-1].Slug,
@@ -239,6 +267,84 @@ func copyAssets(outDir string) error {
 		}
 		return os.WriteFile(dst, data, 0o644)
 	})
+}
+
+func buildDescription(title, difficulty, summary string) string {
+	if summary != "" {
+		return summary
+	}
+	if difficulty != "" {
+		return title + " (" + difficulty + ") — LeetCode problem solved in C with annotated source and complexity analysis."
+	}
+	return title + " — LeetCode problem solved in C with annotated source and complexity analysis."
+}
+
+func buildJSONLD(p *Problem) string {
+	keywords := append([]string{p.Title, "leetcode", "c programming"}, p.Tags...)
+	doc := map[string]any{
+		"@context":            "https://schema.org",
+		"@type":               "TechArticle",
+		"headline":            p.Title,
+		"name":                p.Title,
+		"description":         p.Description,
+		"url":                 p.CanonicalURL,
+		"inLanguage":          "en",
+		"programmingLanguage": "C",
+		"keywords":            strings.Join(keywords, ", "),
+		"image":               p.OGImageURL,
+		"mainEntityOfPage": map[string]any{
+			"@type": "WebPage",
+			"@id":   p.CanonicalURL,
+		},
+		"author": map[string]any{
+			"@type": "Person",
+			"name":  authorName,
+			"url":   authorURL,
+		},
+		"publisher": map[string]any{
+			"@type": "Person",
+			"name":  authorName,
+			"url":   authorURL,
+		},
+		"isPartOf": map[string]any{
+			"@type": "WebSite",
+			"name":  siteName,
+			"url":   siteURL,
+		},
+	}
+	b, err := json.Marshal(doc)
+	if err != nil {
+		return "{}"
+	}
+	return string(b)
+}
+
+func writeSitemap(probs []Problem, outDir string) error {
+	var b strings.Builder
+	b.WriteString(`<?xml version="1.0" encoding="UTF-8"?>` + "\n")
+	b.WriteString(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` + "\n")
+	today := time.Now().UTC().Format("2006-01-02")
+	b.WriteString("  <url>\n")
+	b.WriteString("    <loc>" + siteURL + "/</loc>\n")
+	b.WriteString("    <lastmod>" + today + "</lastmod>\n")
+	b.WriteString("    <changefreq>weekly</changefreq>\n")
+	b.WriteString("    <priority>1.0</priority>\n")
+	b.WriteString("  </url>\n")
+	for _, p := range probs {
+		b.WriteString("  <url>\n")
+		b.WriteString("    <loc>" + siteURL + "/" + p.Slug + ".html</loc>\n")
+		b.WriteString("    <lastmod>" + today + "</lastmod>\n")
+		b.WriteString("    <changefreq>monthly</changefreq>\n")
+		b.WriteString("    <priority>0.8</priority>\n")
+		b.WriteString("  </url>\n")
+	}
+	b.WriteString("</urlset>\n")
+	return os.WriteFile(filepath.Join(outDir, "sitemap.xml"), []byte(b.String()), 0o644)
+}
+
+func writeRobots(outDir string) error {
+	body := "User-agent: *\nAllow: /\n\nSitemap: " + siteURL + "/sitemap.xml\n"
+	return os.WriteFile(filepath.Join(outDir, "robots.txt"), []byte(body), 0o644)
 }
 
 func titleCase(s string) string {

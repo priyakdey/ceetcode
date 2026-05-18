@@ -5,6 +5,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .Title }} - ceetcode</title>
+    <meta name="description" content="{{ .Description }}">
+    <meta name="author" content="{{ .AuthorName }}">
+    <link rel="canonical" href="{{ .CanonicalURL }}">
+
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="{{ .SiteName }}">
+    <meta property="og:title" content="{{ .Title }} - {{ .SiteName }}">
+    <meta property="og:description" content="{{ .Description }}">
+    <meta property="og:url" content="{{ .CanonicalURL }}">
+    <meta property="og:image" content="{{ .OGImageURL }}">
+    <meta property="article:author" content="{{ .AuthorURL }}">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ .Title }} - {{ .SiteName }}">
+    <meta name="twitter:description" content="{{ .Description }}">
+    <meta name="twitter:image" content="{{ .OGImageURL }}">
+
+    <script type="application/ld+json">{{ .JSONLD }}</script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
