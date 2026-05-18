@@ -58,11 +58,7 @@ char* longestPalindrome(char* s)
     }
 
     char *substring = (char *)malloc((substringLength + 1) * sizeof(char));
-    int curr = 0;
-    while (curr < substringLength) {
-        substring[curr] = s[curr + left];
-        curr++;
-    }
+    memcpy(substring, s + left, substringLength);
     substring[substringLength] = '\0';
 
     return substring;
