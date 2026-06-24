@@ -9,8 +9,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
-static int cmpnumberp(const void *n1, const void *n2) {
-  return (*(const int *)n1 - *(const int *)n2);
+static int cmpnumberp (const void* n1, const void* n2) {
+    return (*(const int*)n1 - *(const int*)n2);
 }
 
 
@@ -20,17 +20,17 @@ static int cmpnumberp(const void *n1, const void *n2) {
  * Note: Both returned array and *columnSizes array must be malloced, assume
  * caller calls free().
  */
-int **threeSum(int *nums, int numsSize, int *returnSize, int **returnColumnSizes) {
+int** threeSum (int* nums, int numsSize, int* returnSize, int** returnColumnSizes) {
 
 
-    qsort(nums, numsSize, sizeof(int), cmpnumberp);
+    qsort (nums, numsSize, sizeof (int), cmpnumberp);
 
     int capacity = numsSize;
-    int **result = (int**)malloc(capacity * sizeof(int*));
-    assert(result != NULL);
+    int** result = (int**)malloc (capacity * sizeof (int*));
+    assert (result != NULL);
 
-    *returnColumnSizes = (int *)malloc(capacity * sizeof(int));
-    assert(*returnColumnSizes != NULL);
+    *returnColumnSizes = (int*)malloc (capacity * sizeof (int));
+    assert (*returnColumnSizes != NULL);
 
     *returnSize = 0;
 
@@ -51,15 +51,16 @@ int **threeSum(int *nums, int numsSize, int *returnSize, int **returnColumnSizes
             if (sum == 0) {
                 if (*returnSize >= capacity) {
                     capacity = capacity << 1;
-                    result = (int**)realloc(result, capacity * size(int *));
-                    assert(result != NULL);
+                    result   = (int**)realloc (result, capacity * size (int*));
+                    assert (result != NULL);
 
-                    *returnColumnSizes = (int*)realloc(*returnColumnSizes, capacity * sizeof(int));
-                    assert(*returnColumnSizes != NULL);
+                    *returnColumnSizes =
+                    (int*)realloc (*returnColumnSizes, capacity * sizeof (int));
+                    assert (*returnColumnSizes != NULL);
                 }
 
-                result[*returnSize] = (int*)malloc(3 * sizeof(int));
-                assert(result[*returnSize] != NULL);
+                result[*returnSize] = (int*)malloc (3 * sizeof (int));
+                assert (result[*returnSize] != NULL);
 
                 result[*returnSize][0] = nums[i];
                 result[*returnSize][1] = nums[j];
@@ -77,5 +78,5 @@ int **threeSum(int *nums, int numsSize, int *returnSize, int **returnColumnSizes
         }
     }
 
-   return result;
+    return result;
 }
