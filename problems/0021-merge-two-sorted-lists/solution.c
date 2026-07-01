@@ -1,9 +1,9 @@
 /**
  * @number: 21
- * @title: Merge Two Sorted Lists 
+ * @title: Merge Two Sorted Lists
  * @difficulty: Easy
- * @tags: linked-list, recursion 
- * @link: https://leetcode.com/problems/merge-two-sorted-lists/description 
+ * @tags: linked-list, recursion
+ * @link: https://leetcode.com/problems/merge-two-sorted-lists/description
  */
 
 #include <stdlib.h>
@@ -14,11 +14,13 @@ struct ListNode {
     struct ListNode *next;
 };
 
-
-struct ListNode* mergeTwoLists(struct ListNode* list1, struct ListNode* list2) {
-    if (list1 == NULL && list2 == NULL) return NULL;
-    if (list1 == NULL) return list2; 
-    if (list2 == NULL) return list1;
+struct ListNode *mergeTwoLists(struct ListNode *list1, struct ListNode *list2) {
+    if (list1 == NULL && list2 == NULL)
+        return NULL;
+    if (list1 == NULL)
+        return list2;
+    if (list2 == NULL)
+        return list1;
 
     struct ListNode *head = list1;
     struct ListNode *prev = list1;
@@ -51,4 +53,3 @@ struct ListNode* mergeTwoLists(struct ListNode* list1, struct ListNode* list2) {
 
     return head;
 }
-
