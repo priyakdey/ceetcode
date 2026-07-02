@@ -20,13 +20,14 @@
     --easy: #4ae08e;
     --medium: #e0a84a;
     --hard: #e05a4a;
-    --syn-keyword: #c678dd;
-    --syn-type: #e5c07b;
-    --syn-string: #98c379;
-    --syn-number: #d19a66;
-    --syn-comment: #5c6370;
-    --syn-function: #61afef;
-    --syn-preprocessor: #e06c75;
+    /* code syntax: base16 google dark (Seth Wright) */
+    --syn-keyword: #a36ac7;
+    --syn-type: #fba922;
+    --syn-string: #198844;
+    --syn-number: #f96a38;
+    --syn-comment: #969896;
+    --syn-function: #3971ed;
+    --syn-preprocessor: #cc342b;
 }
 
 [data-theme="light"] {
