@@ -9,9 +9,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-
-bool isValid (char* s) {
-    int capacity = (int)strlen (s);
+bool isValid(char *s) {
+    int capacity = (int)strlen(s);
 
     char stack[capacity];
     int cursor = 0;

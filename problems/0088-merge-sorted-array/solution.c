@@ -7,7 +7,7 @@
  * @link: https://leetcode.com/problems/merge-sorted-array/
  */
 
-void merge (int* nums1, int nums1Size, int m, int* nums2, int nums2Size, int n) {
+void merge(int *nums1, int nums1Size, int m, int *nums2, int nums2Size, int n) {
     int cursor = nums1Size - 1;
     int i = m - 1, j = n - 1;
 

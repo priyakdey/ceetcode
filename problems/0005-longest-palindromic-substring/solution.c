@@ -3,16 +3,16 @@
  * @title: Longest Palindromic Substring
  * @difficulty: Medium
  * @tags: two-pointers, string, dynamic-programming
- * @link: https://leetcode.com/problems/longest-palindromic-substring/description/
+ * @link:
+ * https://leetcode.com/problems/longest-palindromic-substring/description/
  */
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
-
-char* longestPalindrome (char* s) {
-    size_t length = strlen (s);
+char *longestPalindrome(char *s) {
+    size_t length = strlen(s);
 
     int left = 0, right = 1;
     int substringLength = 1;
@@ -27,8 +27,8 @@ char* longestPalindrome (char* s) {
 
         if (r - (l + 1) > substringLength) {
             substringLength = r - (l + 1);
-            left            = l + 1;
-            right           = r;
+            left = l + 1;
+            right = r;
         }
 
         // even length
@@ -44,14 +44,14 @@ char* longestPalindrome (char* s) {
 
             if (r - (l + 1) > substringLength) {
                 substringLength = r - (l + 1);
-                left            = l + 1;
-                right           = r;
+                left = l + 1;
+                right = r;
             }
         }
     }
 
-    char* substring = (char*)malloc ((substringLength + 1) * sizeof (char));
-    memcpy (substring, s + left, substringLength);
+    char *substring = (char *)malloc((substringLength + 1) * sizeof(char));
+    memcpy(substring, s + left, substringLength);
     substring[substringLength] = '\0';
 
     return substring;

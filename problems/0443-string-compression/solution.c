@@ -7,8 +7,8 @@
  * @link: https://leetcode.com/problems/string-compression/description
  */
 
-int compress (char* chars, int charsSize) {
-    int cursor    = 0;
+int compress(char *chars, int charsSize) {
+    int cursor = 0;
     int insert_at = 0;
 
     while (cursor < charsSize) {
@@ -17,10 +17,10 @@ int compress (char* chars, int charsSize) {
             cursor++;
         }
 
-        int count          = cursor - start;
+        int count = cursor - start;
         chars[insert_at++] = chars[start];
-        start              = insert_at; // digit count starts from here
-        int end            = insert_at; // digit count ends here
+        start = insert_at;   // digit count starts from here
+        int end = insert_at; // digit count ends here
         while (count > 0) {
             chars[insert_at++] = count % 10 + '0';
             count /= 10;
@@ -29,9 +29,9 @@ int compress (char* chars, int charsSize) {
 
         // reverse the digits in buffer from end to start
         while (start < end) {
-            char temp    = chars[start];
+            char temp = chars[start];
             chars[start] = chars[end];
-            chars[end]   = temp;
+            chars[end] = temp;
             start++;
             end--;
         }

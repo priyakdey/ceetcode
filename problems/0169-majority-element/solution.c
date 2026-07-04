@@ -10,11 +10,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
-int majorityElement (int* nums, int numsSize) {
-    assert (nums != NULL);
-    assert (numsSize > 0);
+int majorityElement(int *nums, int numsSize) {
+    assert(nums != NULL);
+    assert(numsSize > 0);
 
-    int bias            = 1;
+    int bias = 1;
     int majorityElement = nums[0];
 
     for (int i = 1; i < numsSize; i++) {
@@ -23,7 +23,7 @@ int majorityElement (int* nums, int numsSize) {
 
         if (bias == 0) {
             majorityElement = nums[i];
-            bias            = 1;
+            bias = 1;
         }
     }
 
@@ -34,6 +34,6 @@ int majorityElement (int* nums, int numsSize) {
         }
     }
 
-    assert (count > numsSize / 2);
+    assert(count > numsSize / 2);
     return majorityElement;
 }
