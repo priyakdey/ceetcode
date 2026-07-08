@@ -1,3 +1,8 @@
+.PHONY: dev
+.DEFAULT_GOAL := dev 
+
+
+
 build:
 	go build -o generator .
 
