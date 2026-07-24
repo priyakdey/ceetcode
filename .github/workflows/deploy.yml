@@ -27,6 +27,7 @@ jobs:
         uses: geekyeggo/delete-artifact@v2
         with:
           name: github-pages
+          failOnError: false
       - name: Render site
         run: ./generator/generator
       - uses: actions/configure-pages@v5
