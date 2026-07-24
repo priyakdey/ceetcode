@@ -1,42 +1,37 @@
 name: Deploy site to GitHub Pages
-
-on:
+'on':
   push:
-    branches: [main]
-  workflow_dispatch:
-
+    branches:
+      - main
+  workflow_dispatch: null
 permissions:
   contents: read
   pages: write
   id-token: write
-
 concurrency:
   group: pages
   cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-go@v5
         with:
           go-version-file: generator/go.mod
-
       - name: Build generator
         working-directory: generator
         run: go build -o generator .
-
+      - name: Delete old artifacts
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: github-pages
       - name: Render site
         run: ./generator/generator
-
       - uses: actions/configure-pages@v5
-
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist 
-
+          path: dist
   deploy:
     needs: build
     runs-on: ubuntu-latest
