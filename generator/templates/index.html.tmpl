@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light">
-    <title>ceetcode - LeetCode in C</title>
+    <title>ceetcode - LeetCode Solutions in C</title>
     <meta name="description" content="A growing collection of LeetCode problems solved in plain C — annotated source code, complexity analysis, and the thought process behind each approach.">
     <meta name="author" content="Priyak Dey">
     <link rel="canonical" href="https://ceetcode.com/">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="ceetcode">
-    <meta property="og:title" content="ceetcode - LeetCode in C">
+    <meta property="og:title" content="ceetcode - LeetCode Solutions in C">
     <meta property="og:description" content="A growing collection of LeetCode problems solved in plain C — annotated source, complexity analysis, and approach notes.">
     <meta property="og:url" content="https://ceetcode.com/">
     <meta property="og:image" content="https://ceetcode.com/favico/android-chrome-512x512.png">
 
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="ceetcode - LeetCode in C">
+    <meta name="twitter:title" content="ceetcode - LeetCode Solutions in C">
     <meta name="twitter:description" content="A growing collection of LeetCode problems solved in plain C — annotated source, complexity analysis, and approach notes.">
     <meta name="twitter:image" content="https://ceetcode.com/favico/android-chrome-512x512.png">
 
@@ -57,7 +57,19 @@
         <p>Each solution includes annotated source code, complexity analysis, and the thought process behind the approach.</p>
     </section>
 
-    <div class="stats" id="stats"></div>
+    <div class="stats" id="stats">
+        <div class="stats-total">
+            <span class="stats-total-value">{{ .Total }}</span>
+            <span class="stat-label">problems</span>
+        </div>
+        <div class="stats-bar" aria-hidden="true">
+            {{- range .Stats }}<span class="stats-seg {{ .Name }}" style="--n:{{ .Count }}"></span>{{ end -}}
+        </div>
+        <div class="stats-labels">
+            {{- range .Stats }}<span class="stat-item {{ .Name }}" style="--n:{{ .Count }}"><span class="stat-value">{{ .Count }}</span>
+                <span class="stat-label">{{ .Name }}</span></span>{{ end -}}
+        </div>
+    </div>
 
     <div class="toolbar">
         <div class="search-box">
@@ -77,7 +89,16 @@
         <div class="list-header">
             <span>#</span><span>Title</span><span>Tags</span><span>Difficulty</span>
         </div>
-        <div id="problem-table"></div>
+        <div id="problem-table">
+            {{- range .Problems }}
+            <a href="{{ .Slug }}.html" class="problem-row" data-difficulty="{{ .Difficulty }}">
+                <span class="problem-num">{{ .Number }}</span>
+                <span class="problem-title">{{ .Title }}</span>
+                <span class="problem-tags">{{ range .Tags }}<span class="tag">{{ . }}</span>{{ end }}</span>
+                <span class="difficulty {{ .Difficulty }}">{{ .Difficulty }}</span>
+            </a>
+            {{- end }}
+        </div>
         <div class="no-results" id="no-results">no problems match your search.</div>
     </section>
 
@@ -100,7 +121,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <span class="copyright">&copy; 2026 Priyak Dey. All rights reserved.</span>
+            <span class="copyright">&copy; {{ .Year }} Priyak Dey. All rights reserved.</span>
             <span class="built-by">built by <a href="https://priyakdey.com" target="_blank" rel="noopener">priyakdey</a></span>
         </div>
     </footer>

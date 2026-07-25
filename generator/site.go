@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -73,6 +74,9 @@ type Problem struct {
 	FolderName      string
 	Prev, Next      *NavRef
 	Year            int
+	// LastMod is the date (YYYY-MM-DD) of the problem's last git commit,
+	// empty when git history is unavailable (new dir, shallow clone quirks).
+	LastMod string
 
 	Description  string
 	CanonicalURL string
@@ -83,12 +87,16 @@ type Problem struct {
 	AuthorURL    string
 }
 
-type indexEntry struct {
-	Number     int      `json:"number"`
-	Title      string   `json:"title"`
-	Slug       string   `json:"slug"`
-	Difficulty string   `json:"difficulty"`
-	Tags       []string `json:"tags"`
+type diffStat struct {
+	Name  string
+	Count int
+}
+
+type indexData struct {
+	Problems []Problem
+	Total    int
+	Stats    []diffStat
+	Year     int
 }
 
 func Build(cfg Config) error {
@@ -98,6 +106,9 @@ func Build(cfg Config) error {
 	}
 	sort.Slice(probs, func(i, j int) bool { return probs[i].Number < probs[j].Number })
 	linkNav(probs)
+	for i := range probs {
+		probs[i].LastMod = gitLastMod(filepath.Join(cfg.ProblemsDir, probs[i].FolderName))
+	}
 
 	if cfg.Clean {
 		if err := os.RemoveAll(cfg.OutDir); err != nil {
@@ -114,7 +125,7 @@ func Build(cfg Config) error {
 	if err := renderProblems(src, probs, cfg.OutDir); err != nil {
 		return err
 	}
-	if err := writeIndexJSON(probs, cfg.OutDir); err != nil {
+	if err := renderIndex(src, probs, cfg.OutDir); err != nil {
 		return err
 	}
 	if err := writeSitemap(probs, cfg.OutDir); err != nil {
@@ -244,22 +255,51 @@ func renderProblems(src fs.FS, probs []Problem, outDir string) error {
 	return nil
 }
 
-func writeIndexJSON(probs []Problem, outDir string) error {
-	entries := make([]indexEntry, len(probs))
-	for i, p := range probs {
-		entries[i] = indexEntry{
-			Number: p.Number, Title: p.Title, Slug: p.Slug,
-			Difficulty: p.Difficulty, Tags: p.Tags,
+// renderIndex renders the homepage with the full problem table and stats in
+// the static HTML, so crawlers see real links without executing JS. The
+// client script only filters the pre-rendered rows.
+func renderIndex(src fs.FS, probs []Problem, outDir string) error {
+	tmpl, err := template.ParseFS(src, "templates/index.html.tmpl")
+	if err != nil {
+		return fmt.Errorf("parse index template: %w", err)
+	}
+	counts := map[string]int{}
+	for _, p := range probs {
+		counts[p.Difficulty]++
+	}
+	var stats []diffStat
+	for _, d := range []string{"easy", "medium", "hard"} {
+		if counts[d] > 0 {
+			stats = append(stats, diffStat{Name: d, Count: counts[d]})
 		}
 	}
-	f, err := os.Create(filepath.Join(outDir, "problems.json"))
+	data := indexData{
+		Problems: probs,
+		Total:    len(probs),
+		Stats:    stats,
+		Year:     time.Now().Year(),
+	}
+	f, err := os.Create(filepath.Join(outDir, "index.html"))
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	enc := json.NewEncoder(f)
-	enc.SetIndent("", "  ")
-	return enc.Encode(map[string]any{"PROBLEMS": entries})
+	if err := tmpl.Execute(f, data); err != nil {
+		return fmt.Errorf("render index: %w", err)
+	}
+	return nil
+}
+
+// gitLastMod returns the committer date (YYYY-MM-DD) of the last commit
+// touching dir, or "" when git or the history is unavailable.
+func gitLastMod(dir string) string {
+	cmd := exec.Command("git", "log", "-1", "--format=%cs", "--", dir)
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
 }
 
 func copyAssets(src fs.FS, outDir string) error {
@@ -338,16 +378,31 @@ func writeSitemap(probs []Problem, outDir string) error {
 	b.WriteString(`<?xml version="1.0" encoding="UTF-8"?>` + "\n")
 	b.WriteString(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` + "\n")
 	today := time.Now().UTC().Format("2006-01-02")
+	// Homepage changes whenever its newest problem does; per-page dates come
+	// from git so an unchanged page keeps its lastmod across deploys.
+	home := ""
+	for _, p := range probs {
+		if p.LastMod > home {
+			home = p.LastMod
+		}
+	}
+	if home == "" {
+		home = today
+	}
 	b.WriteString("  <url>\n")
 	b.WriteString("    <loc>" + siteURL + "/</loc>\n")
-	b.WriteString("    <lastmod>" + today + "</lastmod>\n")
+	b.WriteString("    <lastmod>" + home + "</lastmod>\n")
 	b.WriteString("    <changefreq>weekly</changefreq>\n")
 	b.WriteString("    <priority>1.0</priority>\n")
 	b.WriteString("  </url>\n")
 	for _, p := range probs {
+		lm := p.LastMod
+		if lm == "" {
+			lm = today
+		}
 		b.WriteString("  <url>\n")
 		b.WriteString("    <loc>" + siteURL + "/" + p.Slug + ".html</loc>\n")
-		b.WriteString("    <lastmod>" + today + "</lastmod>\n")
+		b.WriteString("    <lastmod>" + lm + "</lastmod>\n")
 		b.WriteString("    <changefreq>monthly</changefreq>\n")
 		b.WriteString("    <priority>0.8</priority>\n")
 		b.WriteString("  </url>\n")

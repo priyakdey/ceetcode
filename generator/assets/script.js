@@ -85,6 +85,8 @@ function copyCode() {
 
 
 // ─── Index page ──────────────────────────────────────────────────
+// The stats block and problem table are rendered into the HTML at build
+// time (crawlers need real links); this script only filters the rows.
 
 const table = document.getElementById('problem-table');
 
@@ -92,8 +94,6 @@ if (table) {
     const searchInput = document.getElementById('search');
     const filterBtns = Array.from(document.querySelectorAll('.filter-btn'));
     const noResults = document.getElementById('no-results');
-
-    const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
     // The toolbar sticks right below the sticky masthead; publish the
     // masthead's height (it varies with viewport width) as a CSS var.
@@ -103,76 +103,32 @@ if (table) {
     setMastheadHeight();
     window.addEventListener('resize', setMastheadHeight);
 
-    let problems = [];
+    const items = Array.from(table.querySelectorAll('.problem-row')).map(row => ({
+        row,
+        number: row.querySelector('.problem-num').textContent.trim(),
+        title: row.querySelector('.problem-title').textContent.trim().toLowerCase(),
+        tags: Array.from(row.querySelectorAll('.tag')).map(t => t.textContent.toLowerCase()),
+        difficulty: row.dataset.difficulty,
+    }));
+
     let activeFilter = 'all';
-
-    const escapeHTML = (s) => String(s).replace(/[&<>"']/g, (c) => (
-        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
-    ));
-
-    // ── Stats: total, proportional bar, per-segment counts beneath ──
-    function renderStats() {
-        const total = problems.length;
-        const counts = {};
-        DIFFICULTIES.forEach(d => {
-            counts[d] = problems.filter(p => p.difficulty === d).length;
-        });
-
-        // Bar and label row share flex-grow ratios (--n), so each label
-        // lines up under its own segment. Zero-count difficulties are
-        // skipped entirely.
-        const present = DIFFICULTIES.filter(d => counts[d] > 0);
-        const segments = present
-            .map(d => `<span class="stats-seg ${d}" style="--n:${counts[d]}"></span>`)
-            .join('');
-        const labels = present
-            .map(d => `<span class="stat-item ${d}" style="--n:${counts[d]}"><span class="stat-value">${counts[d]}</span>
-                <span class="stat-label">${d}</span></span>`)
-            .join('');
-
-        document.getElementById('stats').innerHTML =
-            `<div class="stats-total">
-                <span class="stats-total-value">${total}</span>
-                <span class="stat-label">problems</span>
-            </div>
-            <div class="stats-bar" aria-hidden="true">${segments}</div>
-            <div class="stats-labels">${labels}</div>`;
-    }
-
-    // ── Table ──
-    function renderTable(list) {
-        if (!list.length) {
-            table.innerHTML = '';
-            noResults.style.display = 'block';
-            return;
-        }
-        noResults.style.display = 'none';
-
-        table.innerHTML = list.map(p => {
-            const tags = p.tags.map(t => `<span class="tag">${escapeHTML(t)}</span>`).join('');
-            return `<a href="${encodeURIComponent(p.slug)}.html" class="problem-row">
-                <span class="problem-num">${escapeHTML(p.number)}</span>
-                <span class="problem-title">${escapeHTML(p.title)}</span>
-                <span class="problem-tags">${tags}</span>
-                <span class="difficulty ${escapeHTML(p.difficulty)}">${escapeHTML(p.difficulty)}</span>
-            </a>`;
-        }).join('');
-    }
 
     function applyFilters() {
         const q = searchInput.value.toLowerCase().trim();
-        renderTable(problems.filter(p => {
-            if (activeFilter !== 'all' && p.difficulty !== activeFilter) return false;
-            if (!q) return true;
-            return p.title.toLowerCase().includes(q) ||
-                p.tags.some(t => t.includes(q)) ||
-                String(p.number).includes(q);
-        }));
+        let visible = 0;
+        items.forEach(({ row, number, title, tags, difficulty }) => {
+            const show =
+                (activeFilter === 'all' || difficulty === activeFilter) &&
+                (!q || title.includes(q) || tags.some(t => t.includes(q)) || number.includes(q));
+            row.style.display = show ? '' : 'none';
+            if (show) visible += 1;
+        });
+        noResults.style.display = visible ? 'none' : 'block';
     }
 
     // ── Keyboard: "/" to search, arrows to walk the list, Esc to reset ──
     function rows() {
-        return Array.from(table.querySelectorAll('.problem-row'));
+        return items.filter(it => it.row.style.display !== 'none').map(it => it.row);
     }
 
     function moveFocus(delta) {
@@ -220,19 +176,4 @@ if (table) {
             applyFilters();
         });
     });
-
-    // ── Boot ──
-    (async () => {
-        try {
-            const res = await fetch('./problems.json');
-            const data = await res.json();
-            problems = data.PROBLEMS || [];
-        } catch (err) {
-            noResults.textContent = 'could not load problems.';
-            noResults.style.display = 'block';
-            return;
-        }
-        renderStats();
-        applyFilters();
-    })();
 }

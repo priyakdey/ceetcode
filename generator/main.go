@@ -11,7 +11,7 @@ const usage = `Usage: generator [options]
 
 Static site generator for ceetcode. Walks the problems source tree, parses
 each solution.c frontmatter and notes.md, and renders an HTML page per
-problem plus a problems.json index into the output directory.
+problem plus the index page into the output directory.
 
 Defaults are resolved against the repo root (the nearest ancestor of CWD
 containing a "problems/" directory), so the generator can be invoked from
