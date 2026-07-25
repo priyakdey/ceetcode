@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
     <title>{{ .Title }} - ceetcode</title>
     <meta name="description" content="{{ .Description }}">
     <meta name="author" content="{{ .AuthorName }}">
@@ -24,6 +25,9 @@
 
     <script type="application/ld+json">{{ .JSONLD }}</script>
 
+    <!-- Resolve the theme before first paint so light users never see a dark flash. -->
+    <script>(function(){try{var t=localStorage.getItem('ceetcode-theme');if(t!=='dark'&&t!=='light'){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.dataset.theme=t;}catch(e){}})();</script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -43,14 +47,15 @@
     <div class="container">
         <nav>
             <div class="nav-left">
-                <div class="logo"><span>c</span>eetcode<span class="cursor"></span></div>
-                <div><a href="index.html" class="nav-back">&larr; all problems</a></div>
+                <a href="index.html" class="nav-logo"><span>c</span>eetcode</a>
+                <span class="nav-sep" aria-hidden="true">/</span>
+                <a href="index.html" class="nav-back">&larr; all problems</a>
             </div>
-            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-                <svg class="icon-moon" viewBox="0 0 24 24">
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle colour theme">
+                <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
-                <svg class="icon-sun" viewBox="0 0 24 24">
+                <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
                     <circle cx="12" cy="12" r="5" />
                     <line x1="12" y1="1" x2="12" y2="3" />
                     <line x1="12" y1="21" x2="12" y2="23" />
@@ -99,7 +104,7 @@
 
         <section class="section">
             <div class="section-label">Complexity</div>
-            <div class="complexity-grid{{ if or .TimeNote .SpaceNote }} has-notes{{ end }}">
+            <div class="complexity-grid">
                 <div class="complexity-item">
                     <span class="complexity-label">Time</span>
                     <span class="complexity-value">{{ .TimeComplexity }}</span>

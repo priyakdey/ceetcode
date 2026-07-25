@@ -13,11 +13,8 @@ import (
 	"time"
 )
 
-//go:embed templates
-var templatesFS embed.FS
-
-//go:embed assets
-var assetsFS embed.FS
+//go:embed templates assets
+var embeddedFS embed.FS
 
 const (
 	sourceURLBase = "https://github.com/priyakdey/ceetcode/blob/main/problems/"
@@ -33,6 +30,22 @@ type Config struct {
 	OutDir        string
 	IncludeDrafts bool
 	Clean         bool
+
+	// SrcDir points at the generator source directory (the one holding
+	// templates/ and assets/). When set, those files are read from disk
+	// instead of the embedded copy, so edits take effect on the next build
+	// without recompiling. Empty in prod builds, which always use the embed.
+	SrcDir string
+}
+
+// sourceFS resolves where templates and assets are read from. Both roots are
+// addressed as "templates/..." and "assets/..." either way, so callers do not
+// care which one they got.
+func (c Config) sourceFS() fs.FS {
+	if c.SrcDir != "" {
+		return os.DirFS(c.SrcDir)
+	}
+	return embeddedFS
 }
 
 type NavRef struct {
@@ -94,10 +107,11 @@ func Build(cfg Config) error {
 	if err := os.MkdirAll(cfg.OutDir, 0o755); err != nil {
 		return err
 	}
-	if err := copyAssets(cfg.OutDir); err != nil {
+	src := cfg.sourceFS()
+	if err := copyAssets(src, cfg.OutDir); err != nil {
 		return fmt.Errorf("copy assets: %w", err)
 	}
-	if err := renderProblems(probs, cfg.OutDir); err != nil {
+	if err := renderProblems(src, probs, cfg.OutDir); err != nil {
 		return err
 	}
 	if err := writeIndexJSON(probs, cfg.OutDir); err != nil {
@@ -210,8 +224,8 @@ func linkNav(probs []Problem) {
 	}
 }
 
-func renderProblems(probs []Problem, outDir string) error {
-	tmpl, err := template.ParseFS(templatesFS, "templates/problem.html.tmpl")
+func renderProblems(src fs.FS, probs []Problem, outDir string) error {
+	tmpl, err := template.ParseFS(src, "templates/problem.html.tmpl")
 	if err != nil {
 		return fmt.Errorf("parse template: %w", err)
 	}
@@ -248,8 +262,8 @@ func writeIndexJSON(probs []Problem, outDir string) error {
 	return enc.Encode(map[string]any{"PROBLEMS": entries})
 }
 
-func copyAssets(outDir string) error {
-	return fs.WalkDir(assetsFS, "assets", func(p string, d fs.DirEntry, err error) error {
+func copyAssets(src fs.FS, outDir string) error {
+	return fs.WalkDir(src, "assets", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -261,7 +275,7 @@ func copyAssets(outDir string) error {
 		if d.IsDir() {
 			return os.MkdirAll(dst, 0o755)
 		}
-		data, err := assetsFS.ReadFile(p)
+		data, err := fs.ReadFile(src, p)
 		if err != nil {
 			return err
 		}

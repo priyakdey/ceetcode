@@ -18,7 +18,10 @@ containing a "problems/" directory), so the generator can be invoked from
 any subdirectory of the repo.
 
 Options:
-  -dev                include drafts; build, then serve dist/ over HTTP and open in browser
+  -dev                include drafts; build, then serve dist/ over HTTP and open in
+                      browser. Watches problems/ plus the generator's templates/
+                      and assets/ (read from disk, not the embed, so styles and
+                      templates hot-reload without recompiling)
   -clean              wipe the output directory before building
   -problems  <path>   problems source directory (default: <repo>/problems)
   -out       <path>   output directory (default: <repo>/dist, or <repo>/dist with -dev)
@@ -67,6 +70,20 @@ func main() {
 		IncludeDrafts: *dev,
 		Clean:         *clean,
 	}
+
+	// In dev, read templates/assets off disk when the source tree is around so
+	// they hot-reload like problem content does. Prod always uses the embed.
+	watch := []string{probDir}
+	if *dev {
+		if src := findSrcDir(root); src != "" {
+			cfg.SrcDir = src
+			watch = append(watch,
+				filepath.Join(src, "templates"),
+				filepath.Join(src, "assets"),
+			)
+		}
+	}
+
 	if err := Build(cfg); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
@@ -74,11 +91,31 @@ func main() {
 
 	if *dev {
 		rebuild := func() error { return Build(cfg) }
-		if err := serve(out, []string{probDir}, rebuild); err != nil {
+		if err := serve(out, watch, rebuild); err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			os.Exit(1)
 		}
 	}
+}
+
+// findSrcDir locates the generator source directory holding templates/ and
+// assets/, checking the repo's generator/ folder and CWD. Returns "" when the
+// source tree is not available (e.g. the binary was copied elsewhere).
+func findSrcDir(root string) string {
+	cwd, _ := os.Getwd()
+	for _, c := range []string{filepath.Join(root, "generator"), cwd} {
+		if c == "" {
+			continue
+		}
+		if info, err := os.Stat(filepath.Join(c, "templates")); err != nil || !info.IsDir() {
+			continue
+		}
+		if info, err := os.Stat(filepath.Join(c, "assets")); err != nil || !info.IsDir() {
+			continue
+		}
+		return c
+	}
+	return ""
 }
 
 // findRepoRoot walks up from CWD looking for a directory containing
