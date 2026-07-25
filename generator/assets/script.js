@@ -6,6 +6,7 @@ function toggleTheme() {
     const root = document.documentElement;
     const theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
     root.dataset.theme = theme;
+    syncGiscusTheme(theme);
     try {
         localStorage.setItem('ceetcode-theme', theme);
     } catch (e) { /* private mode, storage blocked — theme just won't persist */ }
@@ -18,8 +19,52 @@ if (window.matchMedia) {
         try {
             stored = localStorage.getItem('ceetcode-theme');
         } catch (err) { /* ignore */ }
-        if (!stored) document.documentElement.dataset.theme = e.matches ? 'light' : 'dark';
+        if (!stored) {
+            const theme = e.matches ? 'light' : 'dark';
+            document.documentElement.dataset.theme = theme;
+            syncGiscusTheme(theme);
+        }
     });
+}
+
+
+// ─── Giscus (problem pages) ──────────────────────────────────────
+// Injected here rather than statically so the widget's theme follows the
+// site toggle. Built-in transparent/noborder themes let the page
+// background show through.
+
+const GISCUS_THEMES = { light: 'noborder_light', dark: 'transparent_dark' };
+
+function syncGiscusTheme(theme) {
+    const frame = document.querySelector('iframe.giscus-frame');
+    if (!frame) return;
+    frame.contentWindow.postMessage(
+        { giscus: { setConfig: { theme: GISCUS_THEMES[theme] } } },
+        'https://giscus.app'
+    );
+}
+
+const commentsSection = document.querySelector('.comments-section');
+if (commentsSection) {
+    const giscus = document.createElement('script');
+    giscus.src = 'https://giscus.app/client.js';
+    giscus.async = true;
+    giscus.crossOrigin = 'anonymous';
+    Object.entries({
+        'data-repo': 'priyakdey/ceetcode',
+        'data-repo-id': 'R_kgDONzIH4g',
+        'data-category': 'Comments',
+        'data-category-id': 'DIC_kwDONzIH4s4C8a2p',
+        'data-mapping': 'pathname',
+        'data-strict': '0',
+        'data-reactions-enabled': '1',
+        'data-emit-metadata': '0',
+        'data-input-position': 'top',
+        'data-theme': GISCUS_THEMES[document.documentElement.dataset.theme] || GISCUS_THEMES.light,
+        'data-lang': 'en',
+        'data-loading': 'lazy',
+    }).forEach(([k, v]) => giscus.setAttribute(k, v));
+    commentsSection.appendChild(giscus);
 }
 
 
@@ -47,9 +92,16 @@ if (table) {
     const searchInput = document.getElementById('search');
     const filterBtns = Array.from(document.querySelectorAll('.filter-btn'));
     const noResults = document.getElementById('no-results');
-    const resultCount = document.getElementById('result-count');
 
     const DIFFICULTIES = ['easy', 'medium', 'hard'];
+
+    // The toolbar sticks right below the sticky masthead; publish the
+    // masthead's height (it varies with viewport width) as a CSS var.
+    const masthead = document.querySelector('.masthead');
+    const setMastheadHeight = () =>
+        document.documentElement.style.setProperty('--masthead-h', `${masthead.offsetHeight}px`);
+    setMastheadHeight();
+    window.addEventListener('resize', setMastheadHeight);
 
     let problems = [];
     let activeFilter = 'all';
@@ -58,7 +110,7 @@ if (table) {
         { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
     ));
 
-    // ── Stats: a total, a stacked difficulty bar, and a legend ──
+    // ── Stats: total, proportional bar, per-segment counts beneath ──
     function renderStats() {
         const total = problems.length;
         const counts = {};
@@ -66,30 +118,29 @@ if (table) {
             counts[d] = problems.filter(p => p.difficulty === d).length;
         });
 
-        const pct = (n) => (total ? (n / total) * 100 : 0).toFixed(2);
-        const segments = DIFFICULTIES
-            .map(d => `<span class="stats-seg ${d}" style="--w:${pct(counts[d])}%"></span>`)
+        // Bar and label row share flex-grow ratios (--n), so each label
+        // lines up under its own segment. Zero-count difficulties are
+        // skipped entirely.
+        const present = DIFFICULTIES.filter(d => counts[d] > 0);
+        const segments = present
+            .map(d => `<span class="stats-seg ${d}" style="--n:${counts[d]}"></span>`)
             .join('');
-        const legend = DIFFICULTIES
-            .map(d => `<span class="stat-item ${d}"><span class="stat-value">${counts[d]}</span>
+        const labels = present
+            .map(d => `<span class="stat-item ${d}" style="--n:${counts[d]}"><span class="stat-value">${counts[d]}</span>
                 <span class="stat-label">${d}</span></span>`)
             .join('');
 
         document.getElementById('stats').innerHTML =
             `<div class="stats-total">
                 <span class="stats-total-value">${total}</span>
-                <span class="stat-label">solved in c</span>
+                <span class="stat-label">problems</span>
             </div>
-            <div class="stats-bar" role="img" aria-label="${DIFFICULTIES.map(d => `${counts[d]} ${d}`).join(', ')}">${segments}</div>
-            <div class="stats-legend">${legend}</div>`;
+            <div class="stats-bar" aria-hidden="true">${segments}</div>
+            <div class="stats-labels">${labels}</div>`;
     }
 
     // ── Table ──
     function renderTable(list) {
-        resultCount.textContent = list.length === problems.length
-            ? `${list.length} problems`
-            : `${list.length} of ${problems.length}`;
-
         if (!list.length) {
             table.innerHTML = '';
             noResults.style.display = 'block';
