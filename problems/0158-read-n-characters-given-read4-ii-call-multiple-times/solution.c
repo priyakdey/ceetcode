@@ -1,11 +1,10 @@
 /**
  * @number: 158
  * @title: Read N Characters Given read4 II - Call Multiple Times
- * @difficulty: TODO
- * @tags: TODO
- * @draft: true
+ * @difficulty: Hard
+ * @tags: array
  * @link:
- * https://leetcode.com/problems/read-n-characters-given-read4-ii-call-multiple-times/description/
+ * https://leetcode.com/problems/read-n-characters-given-read4-ii-call-multiple-times
  */
 
 #include <stdlib.h>
@@ -14,7 +13,7 @@
  * The read4 API is defined in the parent class Reader4.
  *     int read4(char *buf4);
  */
-int read4(char *buf4) { return -1; }
+int read4(char *buf4);
 
 #define BUF4_CAPACITY 4
 

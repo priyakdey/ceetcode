@@ -1,11 +1,9 @@
 /**
  * @number: 26
  * @title: Remove Duplicates from Sorted Array
- * @difficulty: TODO
- * @tags: TODO
- * @draft: true
- * @link:
- * https://leetcode.com/problems/remove-duplicates-from-sorted-array/description/
+ * @difficulty: Easy
+ * @tags: array, two-pointers
+ * @link: https://leetcode.com/problems/remove-duplicates-from-sorted-array
  */
 
 #include <assert.h>

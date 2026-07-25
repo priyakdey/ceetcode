@@ -1,10 +1,9 @@
 /**
  * @number: 88
  * @title: Merge Sorted Array
- * @difficulty: TODO
- * @tags: TODO
- * @draft: true
- * @link: https://leetcode.com/problems/merge-sorted-array/
+ * @difficulty: Easy
+ * @tags: array, two pointers, sorting
+ * @link: https://leetcode.com/problems/merge-sorted-array
  */
 
 void merge(int *nums1, int nums1Size, int m, int *nums2, int nums2Size, int n) {

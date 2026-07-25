@@ -1,35 +1,41 @@
 /**
  * @number: 443
  * @title: String Compression
- * @difficulty: TODO
- * @tags: TODO
- * @draft: true
- * @link: https://leetcode.com/problems/string-compression/description
+ * @difficulty: Medium
+ * @tags: two pointers, string
+ * @link: https://leetcode.com/problems/string-compression
  */
 
 int compress(char *chars, int charsSize) {
-    int cursor = 0;
+    int curr = 0;
     int insert_at = 0;
 
-    while (cursor < charsSize) {
-        int start = cursor;
-        while (cursor < charsSize && chars[cursor] == chars[start]) {
-            cursor++;
+    while (curr < charsSize) {
+        int start = curr;
+        char ch = chars[start];
+
+        while (curr < charsSize && chars[curr] == ch) {
+            curr++;
         }
 
-        int count = cursor - start;
-        chars[insert_at++] = chars[start];
-        start = insert_at;   // digit count starts from here
-        int end = insert_at; // digit count ends here
-        while (count > 0) {
-            chars[insert_at++] = count % 10 + '0';
-            count /= 10;
-            end = insert_at;
+        int streak = curr - start;
+
+        chars[insert_at++] = ch;
+
+        if (streak == 1)
+            continue;
+
+        start = insert_at;
+
+        while (streak > 0) {
+            chars[insert_at++] = (char)((streak % 10) + (int)'0');
+            streak = streak / 10;
         }
 
-        // reverse the digits in buffer from end to start
+        int end = insert_at - 1;
+
         while (start < end) {
-            char temp = chars[start];
+            int temp = chars[start];
             chars[start] = chars[end];
             chars[end] = temp;
             start++;
